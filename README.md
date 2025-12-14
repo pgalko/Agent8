@@ -45,7 +45,10 @@ Bold climbers (low θ) and cautious climbers (high θ) can achieve similar novel
 
 ### Territorial Differentiation
 
-![Exploration Heatmap](output/exploration_heatmap.png)
+
+<img width="2222" height="1747" alt="strategic_progression_heatmap" src="https://github.com/user-attachments/assets/2ce4f422-7ae8-43fd-bcab-0e56326030f5" />
+
+
 
 *Bold agents (θ=2) explore vertically (consequence), cautious agents (θ=8) explore horizontally (difficulty).*
 
@@ -195,7 +198,11 @@ Find the optimal `[unlock_weight, freshness_weight, diversity_weight]` for each 
 
 ### How It Works
 
-![Evolution Results](output/evolution_results.png)
+
+
+<img width="2385" height="1624" alt="evolution_results" src="https://github.com/user-attachments/assets/f4b0b471-12c8-49c0-831e-df434b601053" />
+
+
 
 *Strategy magnitude decreases with θ: bold climbers need MORE strategy to survive.*
 
@@ -368,7 +375,10 @@ python run_evolution.py --full --landscape compressed --thetas 1,2,3,4,5,6,7,8 -
 
 ### Results
 
-![Learning Curves](output/strategic_learning_curves.png)
+
+<img width="2084" height="1475" alt="strategic_learning_curves" src="https://github.com/user-attachments/assets/7e49b8ba-5bc7-467b-af1b-355708108597" />
+
+
 
 *Cautious agents (θ=7-8) accumulate more novelty and skill over time because they survive longer. All agents converge to operating at their personal edge (fear ≈ 0.8). Bold agents (θ=1-2) can reach the same difficulty peaks but their careers end early.*
 
