@@ -366,6 +366,12 @@ python run_evolution.py --full --landscape compressed --thetas 1,2,3,4,5,6,7,8 -
 
 ## Key Findings
 
+### Results
+
+![Learning Curves](output/strategic_learning_curves.png)
+
+*Cautious agents (θ=7-8) accumulate more novelty and skill over time because they survive longer. All agents converge to operating at their personal edge (fear ≈ 0.8). Bold agents (θ=1-2) can reach the same difficulty peaks but their careers end early.*
+
 ### 1. Equal Novelty at Personal Edge
 
 Agents across all θ values achieve similar novelty when operating at their sweet spot (fear ≈ 0.75). The absolute difficulty doesn't matter - what matters is being challenged relative to your own threshold.
