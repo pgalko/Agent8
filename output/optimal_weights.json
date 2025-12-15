@@ -1,0 +1,170 @@
+{
+  "1.0": {
+    "theta": 1.0,
+    "raw_weights": [
+      0.9952207798623984,
+      0.18816552870371847,
+      0.36735585854122255
+    ],
+    "magnitude": 1.5507421671073396,
+    "direction": [
+      0.6417706314898388,
+      0.1213390160497867,
+      0.23689035246037443
+    ],
+    "strategy_type": "Unlock-focused",
+    "performance": {
+      "avg_novelty": 963.1951805578063,
+      "avg_survival": 0.26,
+      "avg_skill": 6.699272495192296,
+      "avg_diversity": 19.76
+    }
+  },
+  "2.0": {
+    "theta": 2.0,
+    "raw_weights": [
+      1.0,
+      0.5585221419855457,
+      0.011052707329887303
+    ],
+    "magnitude": 1.5695748493154331,
+    "direction": [
+      0.6371152037993906,
+      0.35584294831759317,
+      0.0070418478830161675
+    ],
+    "strategy_type": "Unlock-focused",
+    "performance": {
+      "avg_novelty": 1164.7965603231487,
+      "avg_survival": 0.34,
+      "avg_skill": 7.724909366416626,
+      "avg_diversity": 16.52
+    }
+  },
+  "3.0": {
+    "theta": 3.0,
+    "raw_weights": [
+      0.8225004995716659,
+      0.9417125619288561,
+      0.005712841934828113
+    ],
+    "magnitude": 1.76992590343535,
+    "direction": [
+      0.46470900164533885,
+      0.5320632689204856,
+      0.003227729434175596
+    ],
+    "strategy_type": "Unlock-focused",
+    "performance": {
+      "avg_novelty": 1307.2293590704203,
+      "avg_survival": 0.42,
+      "avg_skill": 8.063641620298354,
+      "avg_diversity": 15.9
+    }
+  },
+  "4.0": {
+    "theta": 4.0,
+    "raw_weights": [
+      1.0,
+      0.5719539110953,
+      0.0
+    ],
+    "magnitude": 1.5719539110953,
+    "direction": [
+      0.6361509666038643,
+      0.3638490333961357,
+      0.0
+    ],
+    "strategy_type": "Unlock-focused",
+    "performance": {
+      "avg_novelty": 1423.0512231609898,
+      "avg_survival": 0.68,
+      "avg_skill": 9.166128692346895,
+      "avg_diversity": 12.02
+    }
+  },
+  "5.0": {
+    "theta": 5.0,
+    "raw_weights": [
+      0.9724553322273833,
+      0.2514500499054232,
+      0.06444882357457873
+    ],
+    "magnitude": 1.2883542057073853,
+    "direction": [
+      0.7548043293679829,
+      0.19517152099283264,
+      0.05002414963918435
+    ],
+    "strategy_type": "Unlock-focused",
+    "performance": {
+      "avg_novelty": 1502.7077590494448,
+      "avg_survival": 0.76,
+      "avg_skill": 8.90123717951598,
+      "avg_diversity": 13.34
+    }
+  },
+  "6.0": {
+    "theta": 6.0,
+    "raw_weights": [
+      0.790285052879417,
+      0.6549176306761955,
+      0.00854421179899457
+    ],
+    "magnitude": 1.453746895354607,
+    "direction": [
+      0.5436194260532853,
+      0.45050320160198437,
+      0.005877372344730209
+    ],
+    "strategy_type": "Unlock-focused",
+    "performance": {
+      "avg_novelty": 1526.2035844676377,
+      "avg_survival": 0.84,
+      "avg_skill": 9.190865332351656,
+      "avg_diversity": 9.88
+    }
+  },
+  "7.0": {
+    "theta": 7.0,
+    "raw_weights": [
+      0.8055261048296231,
+      0.5603578390558167,
+      0.047132115121810814
+    ],
+    "magnitude": 1.4130160590072505,
+    "direction": [
+      0.5700756900070657,
+      0.3965686274291249,
+      0.0333556825638094
+    ],
+    "strategy_type": "Unlock-focused",
+    "performance": {
+      "avg_novelty": 1557.9604246223053,
+      "avg_survival": 0.9,
+      "avg_skill": 8.818814620275026,
+      "avg_diversity": 10.66
+    }
+  },
+  "8.0": {
+    "theta": 8.0,
+    "raw_weights": [
+      0.6328139647903281,
+      0.48504051889869887,
+      0.17473954822614585
+    ],
+    "magnitude": 1.2925940319151727,
+    "direction": [
+      0.48956899781806895,
+      0.37524582887021246,
+      0.13518517331171867
+    ],
+    "strategy_type": "Unlock-focused",
+    "performance": {
+      "avg_novelty": 1595.3996007462088,
+      "avg_survival": 0.88,
+      "avg_skill": 8.152417489098385,
+      "avg_diversity": 13.74
+    }
+  }
+}

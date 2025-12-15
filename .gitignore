@@ -38,6 +38,6 @@ env/
 Thumbs.db
 
 # Project specific
-output/*.png
-output/*.json
-*.log
+#output/*.png
+#output/*.json
+#*.log

@@ -1,53 +1,54 @@
-# Agent8 Climber v1 - Fear-Based Exploration with Evolutionary Strategy Optimization
+# Agent8 Climber v1 - Fear-Based Exploration Simulation
 
-A simulation exploring how different fear sensitivities (θ) lead to different exploration trajectories, with evolutionary optimization to discover optimal strategies for each personality type.
+A simulation exploring how people with different risk tolerances navigate uncertain territories, using rock climbing as a metaphor.
 
-## What Is This?
+## What is This?
 
-This project models **how people with different risk tolerances explore uncertain territories** - using rock climbing as a metaphor.
+Imagine two people exploring the same landscape of challenges:
 
-Imagine two climbers:
-- **Bold Alex (θ=2)**: Accepts high risk, accesses dangerous routes, might die early but explores intensely
-- **Cautious Agent8 (θ=8)**: Avoids risk, sticks to safer routes, survives longer but has fewer options
+**Bold Explorer (low θ)**: Needs real stakes to feel engaged. Safe territory feels underwhelming. They venture into dangerous zones, which can accelerate learning - but also cuts many lifecycles short.
 
-The key question: **Can both accumulate similar novelty and develop skills despite opposite approaches?**
+**Cautious Explorer (high θ)**: Feels engaged even with modest stakes. They stay in safer territory, which limits initial options but allows for longer lifecycles and gradual skill building.
+
+Both seek the same thing: **novelty** - the satisfaction of exploring new territory, developing skills, and operating at the edge of their abilities. The simulation tracks whether different personality types can achieve similar outcomes despite taking very different paths.
+
+### What Is Novelty?
+
+Novelty represents the value gained from exploration. It is the same reward for everyone - unlocking new routes, completing challenges, improving skills. What differs is the pacing:
+
+- Bold agents get larger bursts from high-stakes routes, but their lifecycles often end early
+- Cautious agents accumulate novelty more gradually, but over longer lifecycles
+
+Novelty is highest when you are operating at your edge - not too safe (boring), not too scary (overwhelming). This "sweet spot" differs by personality but exists for everyone.
+
+### Two Types of Skill
+
+Agents develop two capabilities through experience:
+
+| Skill | Developed By | What It Does |
+|-------|--------------|--------------|
+| **Physical** | Attempting difficult routes | Reduces fear of difficulty, improves success rate, unlocks harder routes over time |
+| **Mental** | Exposure to consequence (risk) | Reduces "choking under pressure" - the tendency to fail when consequences are high |
+
+Everyone starts at zero for both skills. The difference is exposure:
+
+- Bold agents regularly face high consequences and develop mental skill faster
+- Cautious agents encounter high stakes less often, so mental skill develops more slowly, though it still matters when they venture beyond their usual territory
+
+**Choking**: When the stakes exceed your mental training, you may fail a route you would normally complete. This matters for any agent who faces consequences beyond what they have trained for.
+
+### The Core Question
+
+> Can different personality types find similar fulfillment despite opposite approaches?
+
+The simulation suggests yes, but with important caveats. Strategy helps across personality types, and survival strongly influences lifetime outcomes. Bold explorers who survive can match cautious ones - but many do not survive.
 
 ### Methodology
 
-The project uses two complementary techniques:
+This is a **Monte Carlo** simulation. For each configuration, we run hundreds of stochastic agent lifecycles (typically 50-800) and aggregate the statistics. Each run involves random outcomes for route attempts, falls, and deaths based on the probability models described below.
 
-- **Monte Carlo Simulation**: Runs hundreds of stochastic agent "careers" per configuration to gather statistics on novelty, skill development, and survival outcomes.
+We also use **Evolutionary optimization** to discover optimal strategy weights for each personality type - evolving populations of strategies over multiple generations and selecting for fitness (novelty + skill).
 
-- **Evolutionary Optimization**: Discovers optimal strategy weights for each personality type by evolving populations of strategies and selecting for fitness (novelty + skill).
-
-### What the Simulation Tracks
-
-**Novelty**: The value gained from exploration - highest when operating at the edge of your comfort zone (fear ≈ 0.75-0.80). Too safe feels boring, too scary is overwhelming. Novelty also decays with repetition - fresh routes yield more than familiar ones.
-
-**Skill**: Two types that develop through experience:
-- **Physical skill**: Trained by attempting difficult routes. Builds confidence, reduces difficulty fear, improves success probability.
-- **Mental skill**: Trained by exposure to consequence (risk). Reduces "choking under pressure" - the tendency to fail when stakes are high.
-
-**Survival**: Completing a full career without a fatal accident. When you fall, death probability equals the route's consequence rating.
-
-### The Core Dynamic
-
-Skills unlock continued exploration:
-- Physical skill **reduces fear of difficulty** → harder routes become accessible
-- Mental skill **prevents choking** → better performance on high-stakes routes  
-- Both accumulate over a career, but only if you survive long enough
-
-## Core Thesis
-
-> "Everyone finds novelty at THEIR edge"
-
-Bold climbers (low θ) and cautious climbers (high θ) can achieve similar novelty when operating at their personal edge—but **strategy matters differently** depending on personality, and we can **evolve optimal strategies** for each type.
-
-### Territorial Differentiation
-
-![Exploration Heatmap](output/exploration_heatmap.png)
-
-*Bold agents (θ=2) explore vertically (consequence), cautious agents (θ=8) explore horizontally (difficulty).*
 
 ---
 
@@ -84,125 +85,178 @@ python run_strategic_exploration.py --landscape compressed --thetas 2,4,6,8 --lo
 
 ## The Model
 
-### Agent Fear Sensitivity (θ)
+### Fear Sensitivity (θ)
 
+Each agent has a fear sensitivity parameter θ (theta) on a scale of 1-8. θ determines the agent's "Lauda line" - the maximum consequence (death probability) they will accept:
+
+| θ Range | Profile | Approximate Maximum Acceptable Death Risk |
+|---------|---------|-------------------------------------------|
+| 1-2 | Bold | 12-27% per attempt |
+| 3-4 | Moderate | 4-7% |
+| 5-6 | Cautious | 2-3% |
+| 7-8 | Very Cautious | 1-1.5% |
+
+The Lauda line formula (named after Niki Lauda's famous risk calculation):
+```python
+lauda_line = 0.35 * exp(-0.6 * θ) + 0.01
 ```
-θ = 1-2: Bold (like Alex Honnold) - accepts ~12-27% death risk
-θ = 3-4: Moderate - accepts ~4-7% death risk
-θ = 6-8: Cautious - accepts ~1-2% death risk
-```
 
-### The Fear Function
+This is not a judgment - it is a parameter. Some people genuinely perform best with higher stakes; others thrive when consequences are contained.
 
-Fear determines which routes an agent will attempt:
+### The Fear Calculation
+
+An agent evaluates each route by computing a fear score combining two factors:
 
 ```python
 fear = consequence_fear + difficulty_fear
+```
 
-# Consequence fear (personality-dependent)
-lauda_line = 0.35 × exp(-0.6 × θ) + 0.01  # Personal risk threshold
+**Consequence fear** depends on personality (θ). It reaches 1.0 when the route's consequence equals the agent's Lauda line:
+
+```python
 consequence_fear = route.consequence / lauda_line
+```
 
-# Difficulty fear (skill-dependent, decays with experience)
+**Difficulty fear** depends on physical skill. As agents develop ability, hard routes feel less intimidating. It also habituates with repeated exposure:
+
+```python
 confidence = physical_skill / (2.0 + physical_skill)
-difficulty_fear = 0.5 × difficulty × (1 - confidence) × habituation
+difficulty_fear = 0.5 * difficulty * (1 - confidence) * habituation * boost
 ```
 
-A route is **accessible** if `fear ≤ 1.0`.
+A route feels acceptable when total fear is 1.0 or less. Agents only consider routes where fear is between 0.5 and 1.0 - below 0.5 feels boring and disengaging.
 
-### Route Value (How Agents Choose)
+### Route Selection (How Agents Choose)
 
-Agents don't just pick accessible routes randomly - they evaluate **value**:
+Agents evaluate routes using a value function that combines three factors:
 
 ```python
-value = fear_sweetness × stakes_engagement × novelty_potential
+value = fear_sweetness * stakes_engagement * novelty_potential
+```
 
-# Fear sweetness: Bell curve peaking at optimal fear (~0.75)
-fear_sweetness = exp(-((fear - 0.75) / 0.3)²)
+**Fear sweetness**: A bell curve centered at optimal fear (0.75). Value peaks when fear is in the sweet spot, drops for "too boring" or "too scary":
 
-# Stakes engagement: Bold climbers need real consequence to feel engaged
+```python
+fear_sweetness = exp(-((fear - 0.75) / 0.25)^2)
+```
+
+**Stakes engagement**: Bold agents need real consequence to feel engaged. A hard boulder with low death risk might hit the right fear level but feel hollow without real stakes:
+
+```python
 required_consequence = 0.025 / θ
+# θ=2: needs ~1.25% death rate for full engagement
+# θ=8: needs ~0.3% (easily satisfied)
 stakes_engagement = min(1.0, route.consequence / required_consequence)
-
-# Novelty potential: Fresh routes yield more than repeated ones
-novelty_potential = base × engagement × freshness
 ```
 
-**Key insight**: The same route has different value for different personalities because they experience different fear levels.
+**Novelty potential**: Based on engagement (peaks at 80% of max fear), freshness (decays with repetition), and individual talent:
 
-### Two-Skill System
-
-| Skill | Trained By | Effect |
-|-------|------------|--------|
-| **Physical** | Route difficulty | Reduces difficulty fear, improves success rate |
-| **Mental** | Consequence exposure | Reduces choking under pressure |
-
-**Success probability**:
 ```python
-p_physical = base_success × (1 + physical_skill / (1 + physical_skill))
-p_choke = consequence × (1 - mental_capacity) × 5
-p_success = p_physical × (1 - p_choke)
+engagement = exp(-((relative_fear - 0.80) / 0.30)^2)
+freshness = exp(-0.5 * experience)
+novelty = 10.0 * engagement * freshness * talent * noise
 ```
 
-### Outcome Tracking
+### Success and Failure
 
-Each agent's career ends one of three ways:
+Success probability uses a two-skill model:
+
+```python
+# Physical success - based on difficulty and physical skill
+phys_factor = physical_skill / (1 + physical_skill)
+base_success = 1 - route.difficulty
+p_physical = min(0.99, max(0.05, base_success * (1 + phys_factor)))
+
+# Choking - high stakes + low mental skill = trouble
+mental_capacity = mental_skill / (0.5 + mental_skill)
+p_choke = min(0.5, route.consequence * (1 - mental_capacity) * 5)
+
+# Combined: must physically succeed AND not choke
+p_success = p_physical * (1 - p_choke)
+```
+
+On failure, the agent falls. Death probability equals the route's consequence rating directly.
+
+### Skill Development
+
+Skills are gained from every attempt:
+
+```python
+# On success:
+physical_gained = 0.05 * route.difficulty
+mental_gained = 0.05 * route.consequence * 10  # scaled up since consequence values are small
+
+# On failure (survived):
+physical_gained = 0.05 * route.difficulty * 0.5
+mental_gained = 0.05 * route.consequence * 10 * 0.5
+```
+
+### Lifecycle Outcomes
+
+Each agent's lifecycle ends one of three ways:
 
 | Outcome | Meaning |
 |---------|---------|
-| **Completed** | Finished all max_attempts (full career) |
-| **Stagnated** | Ran out of acceptable routes (alive but stuck) |
-| **Dead** | Fatal accident (fall + unlucky on consequence roll) |
+| **Completed** | Finished maximum attempts (full lifecycle) |
+| **Stagnated** | No acceptable routes remaining (alive but stuck) |
+| **Dead** | Fatal accident |
 
 ---
 
 ## Strategic Route Selection
 
-### Greedy vs Strategic
+### Greedy vs Strategic Agents
 
-**Greedy Agent**: Picks route with highest immediate value (see formula above)
+**Greedy**: Picks the route with highest immediate value (fear_sweetness * stakes_engagement * novelty_potential).
 
-**Strategic Agent**: Adds three behavioral bonuses to immediate value:
+**Strategic**: Adds three planning bonuses to immediate value:
 
 ```python
 strategic_value = immediate_value + unlock_bonus + freshness_bonus + diversity_bonus
 ```
 
-### Strategy Weights (Behaviors)
+### Strategy Behaviors
 
-| Weight | Formula | Effect |
-|--------|---------|--------|
-| `unlock_weight` | `weight × min(n_almost, 20) × difficulty` | Prefer routes that build skill when there are "almost accessible" routes nearby |
-| `freshness_weight` | `weight × 50 × exp(-0.5 × experience)` | Prefer routes not recently attempted |
-| `diversity_weight` | `weight × 100` (if new grid cell) | Prefer routes in unvisited areas of the landscape |
+| Behavior | Formula | Effect |
+|----------|---------|--------|
+| **Unlock** | `unlock_weight * min(n_almost, 20) * difficulty` | When routes are "almost accessible" (fear 1.0-1.5), prefer harder routes that build skill toward unlocking them |
+| **Freshness** | `freshness_weight * 50 * exp(-0.5 * experience)` | Prefer routes not recently attempted |
+| **Diversity** | `diversity_weight * 100` (if new grid cell) | Prefer routes in unvisited areas of the difficulty/consequence grid |
 
-### Why Strategy Matters
+Default weights: unlock=0.2, freshness=0.1, diversity=0.1
 
-Without strategy, greedy agents:
-- Deplete their favorite routes quickly (stagnation)
+### Why Strategy Helps
+
+Without strategy, greedy agents tend to:
+- Deplete favorite routes quickly (leading to stagnation)
 - Miss opportunities to unlock new territory through skill building
-- Cluster in one corner of the landscape
+- Cluster in one area of the landscape
 
-Strategic agents spread exploration, avoid exhaustion, and unlock more routes over time.
+Strategic agents spread their exploration, avoid exhausting options, and unlock more routes over time.
 
 ---
 
 ## Evolutionary Optimization
 
-### The Goal
+### Purpose
 
-Find the optimal `[unlock_weight, freshness_weight, diversity_weight]` for each θ.
+Hand-tuned strategy weights work reasonably well, but are they optimal? Evolution discovers better weights for each personality type.
 
-### How It Works
+### What Gets Evolved
+
+The three behavior weights: `[unlock_weight, freshness_weight, diversity_weight]`
+
+These control HOW agents pick routes. They are separate from the fitness function which controls WHAT outcomes we optimize for.
+
+### Method
 
 ![Evolution Results](output/evolution_results.png)
 
-*Strategy magnitude decreases with θ: bold climbers need MORE strategy to survive.*
-
+*Evolved strategy weights by personality type. The stacked bars show direction (which behaviors matter), while the black line shows magnitude (how much strategy matters overall).*
 
 ```
-GENERATION 0: Random Population
-┌─────────────────────────────────────────────────────────┐
+GENERATION 0: Random population of weight combinations
+─────────────────────────────────────────────────────────┐
 │  Individual    Weights [u,f,d]      Fitness             │
 ├─────────────────────────────────────────────────────────┤
 │  A             [0.1, 0.8, 0.3]    → 30 runs → 1200      │
@@ -228,45 +282,42 @@ FINAL: Optimized Weights for this θ
 
 ### Fitness Function
 
-Fitness is what we optimize for (the **goals**):
+What we optimize for (the goals):
 
 ```python
-fitness = novelty_weight × avg_novelty 
-        + survival_weight × avg_survival × 1000 
-        + skill_weight × avg_skill × 100
+fitness = novelty_weight * avg_novelty + survival_weight * avg_survival * 1000 + skill_weight * avg_skill * 100
 ```
 
-Default weights: `novelty=1.0, survival=0.0, skill=0.5`
+Default weights: novelty=1.0, survival=0.0, skill=0.5
 
-### Normalized Weights: Magnitude + Direction
+### Interpreting Results
 
-Raw strategy weights are decomposed into interpretable components:
+Strategy weights are decomposed into magnitude and direction:
 
-```
+```python
 magnitude = sum(weights)           # How much strategy matters overall
 direction = weights / magnitude    # Which behaviors matter most (sums to 100%)
 ```
 
-**Magnitude Interpretation:**
+**Magnitude interpretation:**
 
-| Range | Label | Meaning |
-|-------|-------|---------|
-| > 2.0 | CRITICAL | Strategy is essential for survival |
-| 1.5 - 2.0 | IMPORTANT | Strategy significantly helps |
-| 1.0 - 1.5 | MODERATE | Strategy provides benefit |
-| < 1.0 | OPTIONAL | Natural fear provides sufficient guidance |
+| Range | Meaning |
+|-------|---------|
+| > 1.5 | Strategy provides meaningful benefit |
+| 1.0 - 1.5 | Strategy provides moderate benefit |
+| < 1.0 | Natural instincts may suffice |
 
-### Save and Load Evolved Weights
+In practice, evolved magnitudes cluster in the 1.3-1.8 range across personality types, suggesting strategy helps everyone to a similar degree. What varies more is the type of strategy that helps.
+
+### Saving and Loading Weights
 
 ```bash
-# Step 1: Run evolution and save weights
-python run_evolution.py --landscape compressed --thetas 1,2,3,4,5,6,7,8 --plot --save output/optimal_weights.json
+# Evolve and save
+python run_evolution.py --landscape compressed --thetas 2,4,6,8 --save output/optimal_weights.json
 
-# Step 2: Use evolved weights in strategic exploration
-python run_strategic_exploration.py --landscape compressed --thetas 1,2,3,4,5,6,7,8 --load-weights output/optimal_weights.json --plot --heatmap
+# Use evolved weights
+python run_strategic_exploration.py --load-weights output/optimal_weights.json --thetas 2,4,6,8
 ```
-
-The JSON file contains per-θ optimal weights and performance metrics.
 
 ---
 
@@ -274,11 +325,18 @@ The JSON file contains per-θ optimal weights and performance metrics.
 
 ### Compressed Landscape (Recommended)
 
-Ultra-tight consequence bands designed so ALL θ values can explore the full grid:
+Tight consequence bands (0.1% to 3.5%) designed so all θ values can explore most of the 5x5 grid:
 
 ```python
 landscape = Landscape.create_compressed(seed=42)
 ```
+
+Consequence bands:
+- C1: 0.10% - 0.40% (accessible to all θ)
+- C2: 0.40% - 0.70% (accessible to θ <= 7)
+- C3: 0.70% - 1.20% (accessible to θ <= 6)
+- C4: 1.20% - 2.00% (accessible to θ <= 5)
+- C5: 2.00% - 3.50% (accessible to θ <= 4)
 
 ```
                         CONSEQUENCE
@@ -303,13 +361,13 @@ landscape = Landscape.create_compressed(seed=42)
 - Enables fair comparison of exploration patterns
 - Reveals territorial differentiation by personality
 
-### Other Landscapes
+### Other Options
 
 ```python
-# Fair: Routes calibrated per-θ (equal access by design)
+# Fair: Routes calibrated per-θ for equal sweet-spot access
 landscape = Landscape.create_fair(thetas=[2, 4, 6, 8])
 
-# Stratified: Uniform grid, wider consequence range
+# Stratified: Uniform 5x5 grid with wider consequence range
 landscape = Landscape.create_stratified_coverage(seed=42)
 ```
 
@@ -366,45 +424,48 @@ python run_evolution.py --full --landscape compressed --thetas 1,2,3,4,5,6,7,8 -
 
 ## Key Findings
 
-### Results
+### Exploration Patterns
+
+![Exploration Heatmap](output/exploration_heatmap.png)
+
+*Bold agents (low θ) explore vertically into high-consequence territory. Cautious agents (high θ) explore horizontally, pushing difficulty within safer zones.*
+
+### Learning Trajectories
 
 ![Learning Curves](output/strategic_learning_curves.png)
 
-*Cautious agents (θ=7-8) accumulate more novelty and skill over time because they survive longer. All agents converge to operating at their personal edge (fear ≈ 0.8). Bold agents (θ=1-2) can reach the same difficulty peaks but their careers end early.*
+*Novelty and skill accumulation over time. Cautious agents (θ=7-8) often accumulate more total novelty because their lifecycles last longer. All agents tend to converge toward operating at their personal edge (fear around 0.8).*
 
-### 1. Equal Novelty at Personal Edge
+### What the Simulations Suggest
 
-Agents across all θ values achieve similar novelty when operating at their sweet spot (fear ≈ 0.75). The absolute difficulty doesn't matter - what matters is being challenged relative to your own threshold.
+**1. Similar novelty at personal edges**
 
-### 2. Territorial Differentiation
+Agents across θ values tend to achieve comparable novelty per attempt when operating at their sweet spot (fear around 0.75-0.80). The absolute difficulty matters less than being appropriately challenged for your own threshold.
 
-Bold and cautious climbers explore different regions of the landscape:
-- **Bold (low θ)**: Vertical exploration (consequence dimension) - they can access high-risk routes
-- **Cautious (high θ)**: Horizontal exploration (difficulty dimension) - they push technical skill within safe zones
+**2. Different exploration territories**
 
-### 3. Strategy Magnitude Varies by Personality
+Bold and cautious agents explore different regions:
+- Bold agents explore vertically (consequence dimension) - they access high-risk routes
+- Cautious agents explore horizontally (difficulty dimension) - they push technical skill within safer zones
 
-| θ | Magnitude | Interpretation |
-|---|-----------|----------------|
-| 1-2 | ~2.0+ | CRITICAL - bold climbers need strategy to survive their risky territory |
-| 3-4 | ~1.5 | IMPORTANT - strategy helps significantly |
-| 5-6 | ~1.0 | MODERATE - strategy provides benefit |
-| 7-8 | ~0.7 | OPTIONAL - natural fear provides sufficient guidance |
+**3. Survival shapes lifetime outcomes**
 
-### 4. Strategic Agents Avoid Stagnation
+Cautious agents often accumulate more lifetime novelty - not because they find more per attempt, but because they survive longer. Bold agents can match this, but many lifecycles end early.
 
-| Agent Type | Stagnation Rate |
-|------------|-----------------|
-| Greedy | 20-40% (exhaust favorite routes) |
-| Strategic | ~0% (freshness/diversity spread exploration) |
+**4. Strategy helps across personality types**
 
-### 5. Death Timing Matters
+Evolution suggests strategy provides moderate benefit for all personality types (magnitude roughly 1.3-1.8 across θ values). What varies more is which behaviors matter:
+- Unlock focus (building toward inaccessible routes) tends to dominate
+- Freshness (avoiding repetition) provides secondary benefit
+- Diversity (exploring new areas) appears more relevant at the extremes (very bold or very cautious)
 
-Expected novelty depends not just on survival rate, but on *when* deaths occur:
-- Early death = low total novelty (wasted potential)
-- Late death = high total novelty (productive career before accident)
+**5. Strategic agents avoid stagnation**
 
-Cautious agents who die tend to die late (after accumulating skill/novelty). Bold agents who die may die early (before accumulating much).
+Greedy agents frequently exhaust their preferred routes and stagnate (20-40% of lifecycles). Strategic agents rarely stagnate because freshness and diversity bonuses spread exploration.
+
+### Caveats
+
+This is a simplified simulation, not a predictive model of human behavior. The findings suggest patterns worth investigating, not definitive conclusions about how people actually behave.
 
 ---
 
@@ -412,28 +473,21 @@ Cautious agents who die tend to die late (after accumulating skill/novelty). Bol
 
 ```
 agent8_climber_v1/
-├── run_exploration.py              # Greedy agent exploration
-├── run_strategic_exploration.py    # Strategic exploration (with --load-weights)
-├── run_evolution.py                # Evolutionary optimization (with --save)
-│
-├── src/
-│   ├── agent.py                    # Agent with fear model and two-skill system
-│   ├── strategic_agent.py          # Strategic agent with planning behaviors
-│   ├── evolution.py                # Evolutionary optimizer
-│   ├── landscape.py                # Route generation (incl. compressed)
-│   ├── exploration.py              # Simulation loop
-│   └── visualizations.py           # Plotting utilities
-│
-├── output/
-│   ├── learning_curves.png
-│   ├── exploration_heatmap.png
-│   ├── progression_heatmap.png
-│   ├── evolution_results.png
-│   └── optimal_weights.json        # Evolved weights (from --save)
-│
-├── .gitignore
-├── requirements.txt
-└── README.md
+|-- run_exploration.py              # Greedy agent exploration
+|-- run_strategic_exploration.py    # Strategic exploration
+|-- run_evolution.py                # Evolutionary optimization
+|
+|-- src/
+|   |-- agent.py                    # Agent with fear model and two-skill system
+|   |-- strategic_agent.py          # Strategic planning behaviors
+|   |-- evolution.py                # Evolutionary optimizer
+|   |-- landscape.py                # Route generation
+|   |-- exploration.py              # Simulation loop
+|   |-- visualizations.py           # Plotting
+|
+|-- output/                         # Generated figures and data
+|-- requirements.txt
+|-- README.md
 ```
 
 ---
@@ -470,7 +524,7 @@ python run_evolution.py --full --landscape compressed --thetas 1,2,3,4,5,6,7,8 -
 
 ## Acknowledgments
 
-Thanks to Sophie Herzog for ideas and critique.
+Thanks to Sophie Herzog for ideas and feedback.
 
 ---
 
