@@ -49,6 +49,42 @@ This is a **Monte Carlo** simulation. For each configuration, we run hundreds of
 
 We also use **Evolutionary optimization** to discover optimal strategy weights for each personality type - evolving populations of strategies over multiple generations and selecting for fitness (novelty + skill).
 
+<<<<<<< HEAD
+=======
+- **Evolutionary Optimization**: Discovers optimal strategy weights for each personality type by evolving populations of strategies and selecting for fitness (novelty + skill).
+
+### What the Simulation Tracks
+
+**Novelty**: The value gained from exploration - highest when operating at the edge of your comfort zone (fear ≈ 0.75-0.80). Too safe feels boring, too scary is overwhelming. Novelty also decays with repetition - fresh routes yield more than familiar ones.
+
+**Skill**: Two types that develop through experience:
+- **Physical skill**: Trained by attempting difficult routes. Builds confidence, reduces difficulty fear, improves success probability.
+- **Mental skill**: Trained by exposure to consequence (risk). Reduces "choking under pressure" - the tendency to fail when stakes are high.
+
+**Survival**: Completing a full career without a fatal accident. When you fall, death probability equals the route's consequence rating.
+
+### The Core Dynamic
+
+Skills unlock continued exploration:
+- Physical skill **reduces fear of difficulty** → harder routes become accessible
+- Mental skill **prevents choking** → better performance on high-stakes routes  
+- Both accumulate over a career, but only if you survive long enough
+
+## Core Thesis
+
+> "Everyone finds novelty at THEIR edge"
+
+Bold climbers (low θ) and cautious climbers (high θ) can achieve similar novelty when operating at their personal edge—but **strategy matters differently** depending on personality, and we can **evolve optimal strategies** for each type.
+
+### Territorial Differentiation
+
+
+<img width="2222" height="1747" alt="strategic_progression_heatmap" src="https://github.com/user-attachments/assets/2ce4f422-7ae8-43fd-bcab-0e56326030f5" />
+
+
+
+*Bold agents (θ=2) explore vertically (consequence), cautious agents (θ=8) explore horizontally (difficulty).*
+>>>>>>> 1daa8e746a9bc388450f684c1019e01855604d4e
 
 ---
 
@@ -250,7 +286,11 @@ These control HOW agents pick routes. They are separate from the fitness functio
 
 ### Method
 
-![Evolution Results](output/evolution_results.png)
+
+
+<img width="2385" height="1624" alt="evolution_results" src="https://github.com/user-attachments/assets/f4b0b471-12c8-49c0-831e-df434b601053" />
+
+
 
 *Evolved strategy weights by personality type. The stacked bars show direction (which behaviors matter), while the black line shows magnitude (how much strategy matters overall).*
 
@@ -432,7 +472,10 @@ python run_evolution.py --full --landscape compressed --thetas 1,2,3,4,5,6,7,8 -
 
 ### Learning Trajectories
 
-![Learning Curves](output/strategic_learning_curves.png)
+
+<img width="2084" height="1475" alt="strategic_learning_curves" src="https://github.com/user-attachments/assets/7e49b8ba-5bc7-467b-af1b-355708108597" />
+
+
 
 *Novelty and skill accumulation over time. Cautious agents (θ=7-8) often accumulate more total novelty because their lifecycles last longer. All agents tend to converge toward operating at their personal edge (fear around 0.8).*
 
