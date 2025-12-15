@@ -250,11 +250,7 @@ These control HOW agents pick routes. They are separate from the fitness functio
 
 ### Method
 
-
-
-<img width="2385" height="1624" alt="evolution_results" src="https://github.com/user-attachments/assets/f4b0b471-12c8-49c0-831e-df434b601053" />
-
-
+![Evolution Results](output/evolution_results.png)
 
 *Evolved strategy weights by personality type. The stacked bars show direction (which behaviors matter), while the black line shows magnitude (how much strategy matters overall).*
 
@@ -436,9 +432,7 @@ python run_evolution.py --full --landscape compressed --thetas 1,2,3,4,5,6,7,8 -
 
 ### Learning Trajectories
 
-
-<img width="2084" height="1475" alt="strategic_learning_curves" src="https://github.com/user-attachments/assets/7e49b8ba-5bc7-467b-af1b-355708108597" />
-
+![Learning Curves](output/strategic_learning_curves.png)
 
 
 *Novelty and skill accumulation over time. Cautious agents (θ=7-8) often accumulate more total novelty because their lifecycles last longer. All agents tend to converge toward operating at their personal edge (fear around 0.8).*
