@@ -27,7 +27,7 @@ from agent import AgentConfig
 from landscape import Landscape
 from exploration import run_exploration, ExplorationTrace
 from strategic_agent import StrategicAlex, StrategyConfig
-from visualizations import create_learning_curves, create_exploration_heatmap, create_progression_heatmap
+from visualizations import create_learning_curves, create_exploration_heatmap, create_progression_heatmap, create_journey_scatter
 
 
 # =============================================================================
@@ -438,6 +438,8 @@ def main():
                         help='Max attempts per agent (default: 100)')
     parser.add_argument('--plot', action='store_true', help='Generate visualization')
     parser.add_argument('--heatmap', action='store_true', help='Generate exploration heatmaps')
+    parser.add_argument('--journey', action='store_true', 
+                        help='Generate journey scatter plot (success/failure over career)')
     parser.add_argument('--seed', type=int, default=42, help='Random seed')
     parser.add_argument('--output', type=str, default='output/strategic_learning_curves.png',
                         help='Output path for visualization')
@@ -556,6 +558,20 @@ def main():
         progression_path = os.path.join(output_dir, 'strategic_progression_heatmap.png')
         print("Generating progression heatmap...")
         create_progression_heatmap(results, landscape, progression_path)
+    
+    # Generate journey scatter plot
+    if args.journey:
+        output_dir = os.path.dirname(args.output) or 'output'
+        
+        # Difficulty journey
+        journey_diff_path = os.path.join(output_dir, 'journey_difficulty.png')
+        print("Generating journey scatter (difficulty)...")
+        create_journey_scatter(results, journey_diff_path, y_axis='difficulty')
+        
+        # Consequence journey  
+        journey_cons_path = os.path.join(output_dir, 'journey_consequence.png')
+        print("Generating journey scatter (consequence)...")
+        create_journey_scatter(results, journey_cons_path, y_axis='consequence')
 
 
 if __name__ == '__main__':

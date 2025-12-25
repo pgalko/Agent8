@@ -44,6 +44,10 @@ class ExplorationTrace:
     fear_over_time: List[float] = None
     consequence_over_time: List[float] = None
     
+    # Per-attempt outcome tracking for journey visualization
+    # Each entry: "success", "failure", or "fatal"
+    outcome_over_time: List[str] = None
+    
     # Route-level tracking for heatmaps
     route_attempts: Dict[str, int] = None  # route_name -> attempt count
     route_attempt_times: Dict[str, List[int]] = None  # route_name -> list of attempt numbers
@@ -69,6 +73,7 @@ def run_exploration(
     physical_diff_over_time = []
     fear_over_time = []
     consequence_over_time = []
+    outcome_over_time = []  # "success", "failure", or "fatal"
     
     routes_tried = set()
     route_attempt_counts = {}  # Track attempt counts per route for heatmaps
@@ -121,11 +126,17 @@ def run_exploration(
         
         if result.success:
             successes += 1
+            outcome_over_time.append("success")
             # Track max physical difficulty achieved (successful climbs only)
             if route.difficulty > max_physical_achieved:
                 max_physical_achieved = route.difficulty
         else:
             failures += 1
+            # Check if this was fatal
+            if not alex.alive:
+                outcome_over_time.append("fatal")
+            else:
+                outcome_over_time.append("failure")
         
         # Record post-attempt state
         novelty_over_time.append(alex.total_novelty)
@@ -156,6 +167,7 @@ def run_exploration(
                 physical_diff_over_time=physical_diff_over_time,
                 fear_over_time=fear_over_time,
                 consequence_over_time=consequence_over_time,
+                outcome_over_time=outcome_over_time,
                 route_attempts=route_attempt_counts,
                 route_attempt_times=route_attempt_times,
             )
@@ -186,6 +198,7 @@ def run_exploration(
         physical_diff_over_time=physical_diff_over_time,
         fear_over_time=fear_over_time,
         consequence_over_time=consequence_over_time,
+        outcome_over_time=outcome_over_time,
         route_attempts=route_attempt_counts,
         route_attempt_times=route_attempt_times,
     )

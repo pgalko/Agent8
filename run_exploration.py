@@ -37,7 +37,7 @@ import numpy as np
 from landscape import Landscape
 from agent import Alex, AgentConfig
 from exploration import run_exploration_batch, ExplorationTrace
-from visualizations import create_learning_curves, create_exploration_heatmap, create_progression_heatmap
+from visualizations import create_learning_curves, create_exploration_heatmap, create_progression_heatmap, create_journey_scatter
 from typing import Dict, List
 
 
@@ -473,6 +473,8 @@ def main():
                         help='Max attempts per agent (default: 100)')
     parser.add_argument('--plot', action='store_true', help='Generate visualization')
     parser.add_argument('--heatmap', action='store_true', help='Generate exploration heatmap')
+    parser.add_argument('--journey', action='store_true', 
+                        help='Generate journey scatter plot (success/failure over career)')
     parser.add_argument('--seed', type=int, default=42, help='Random seed')
     parser.add_argument('--output', type=str, default='output/learning_curves.png',
                         help='Output path for visualization')
@@ -548,7 +550,6 @@ def main():
 
     # Generate exploration heatmap
     if args.heatmap:
-        import os
         output_dir = os.path.dirname(args.output) or 'output'
         
         # Frequency heatmap (where agents spend time)
@@ -560,6 +561,20 @@ def main():
         progression_path = os.path.join(output_dir, 'progression_heatmap.png')
         print("Generating progression heatmap...")
         create_progression_heatmap(results, landscape, progression_path)
+    
+    # Generate journey scatter plot
+    if args.journey:
+        output_dir = os.path.dirname(args.output) or 'output'
+        
+        # Difficulty journey
+        journey_diff_path = os.path.join(output_dir, 'journey_difficulty.png')
+        print("Generating journey scatter (difficulty)...")
+        create_journey_scatter(results, journey_diff_path, y_axis='difficulty')
+        
+        # Consequence journey  
+        journey_cons_path = os.path.join(output_dir, 'journey_consequence.png')
+        print("Generating journey scatter (consequence)...")
+        create_journey_scatter(results, journey_cons_path, y_axis='consequence')
 
 
 if __name__ == '__main__':

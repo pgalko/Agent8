@@ -135,15 +135,13 @@ def create_learning_curves(results: Dict[float, List[ExplorationTrace]],
     fig, axes = plt.subplots(2, 2, figsize=figsize)
     fig.suptitle("Learning Curves by Fear Sensitivity (θ)", fontsize=14, fontweight='bold')
     
-    # Find max attempts across all agents for x-axis alignment
+    # Find max trajectory length across ALL agents (for reference, but we'll plot per-theta)
     all_traces = [t for traces in results.values() for t in traces]
     if not all_traces:
         print("No traces to plot!")
         return
     
-    max_attempts = max(t.attempts for t in all_traces)
-    
-    # Plot each theta
+    # Plot each theta with its own trajectory length (curves end when last agent dies)
     for theta in thetas:
         traces = results[theta]
         color = colors.get(theta, '#333333')
@@ -151,6 +149,7 @@ def create_learning_curves(results: Dict[float, List[ExplorationTrace]],
         if not traces:
             continue
         
+        # Use this theta's max trajectory length
         traj_len = max(len(t.novelty_over_time) for t in traces)
         x = np.arange(traj_len)
         
@@ -184,12 +183,14 @@ def create_learning_curves(results: Dict[float, List[ExplorationTrace]],
                 cum_max = np.maximum.accumulate(diffs)
                 cum_maxes.append(cum_max)
             
+            # Pad to this theta's trajectory length
             max_len = max(len(cm) for cm in cum_maxes)
             padded = []
             for cm in cum_maxes:
-                if len(cm) < max_len:
-                    cm = list(cm) + [cm[-1]] * (max_len - len(cm))
-                padded.append(cm[:max_len])
+                cm_list = list(cm)
+                if len(cm_list) < max_len:
+                    cm_list = cm_list + [cm_list[-1]] * (max_len - len(cm_list))
+                padded.append(cm_list[:max_len])
             
             mean_frontier = np.mean(padded, axis=0)
             ax4.plot(np.arange(len(mean_frontier)), mean_frontier, color=color, 
@@ -954,3 +955,137 @@ def create_progression_heatmap(
     plt.close()
     
     print(f"Progression heatmap saved to: {output_path}")
+
+
+def create_journey_scatter(
+    results: Dict[float, List],
+    output_path: str,
+    y_axis: str = 'difficulty',  # 'difficulty' or 'consequence'
+):
+    """
+    Create scatter plot showing all agent journeys.
+    
+    Each dot represents one route attempt:
+    - X axis: attempt number (career progression)
+    - Y axis: difficulty or consequence of route attempted
+    - Color: green = success, orange = failure (survived), red X = fatal
+    
+    Args:
+        results: Dict mapping theta -> list of ExplorationTrace
+        output_path: Where to save the visualization
+        y_axis: 'difficulty' or 'consequence'
+    """
+    import matplotlib.pyplot as plt
+    
+    thetas = sorted(results.keys())
+    n_thetas = len(thetas)
+    
+    # Determine grid layout
+    if n_thetas <= 2:
+        n_rows, n_cols = 1, n_thetas
+    elif n_thetas <= 4:
+        n_rows, n_cols = 2, 2
+    elif n_thetas <= 6:
+        n_rows, n_cols = 2, 3
+    else:
+        n_rows, n_cols = 3, 3
+    
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=(5 * n_cols, 4 * n_rows))
+    if n_thetas == 1:
+        axes = [axes]
+    else:
+        axes = axes.flatten()
+    
+    fig.suptitle(f'Individual Journeys: {y_axis.capitalize()} Over Career', 
+                 fontsize=14, fontweight='bold', y=0.98)
+    
+    for idx, theta in enumerate(thetas):
+        ax = axes[idx]
+        traces = results[theta]
+        
+        # Collect all attempts from all agents
+        success_x, success_y = [], []
+        failure_x, failure_y = [], []
+        fatal_x, fatal_y = [], []
+        
+        for trace in traces:
+            if trace.outcome_over_time is None:
+                continue
+                
+            # Get y-values based on axis choice
+            if y_axis == 'difficulty':
+                y_values = trace.physical_diff_over_time
+            else:
+                y_values = trace.consequence_over_time
+            
+            if y_values is None:
+                continue
+            
+            for attempt_num, (outcome, y_val) in enumerate(zip(trace.outcome_over_time, y_values)):
+                if outcome == 'success':
+                    success_x.append(attempt_num)
+                    success_y.append(y_val)
+                elif outcome == 'failure':
+                    failure_x.append(attempt_num)
+                    failure_y.append(y_val)
+                elif outcome == 'fatal':
+                    fatal_x.append(attempt_num)
+                    fatal_y.append(y_val)
+        
+        # Plot with transparency to show density
+        if success_x:
+            ax.scatter(success_x, success_y, c='#2ecc71', alpha=0.6, s=8, 
+                      label=f'Success ({len(success_x)})', edgecolors='none')
+        if failure_x:
+            ax.scatter(failure_x, failure_y, c='#e67e22', alpha=0.3, s=8, 
+                      label=f'Failure ({len(failure_x)})', edgecolors='none')
+        if fatal_x:
+            ax.scatter(fatal_x, fatal_y, c='#e74c3c', alpha=0.9, s=8, 
+                      label=f'Fatal ({len(fatal_x)})', edgecolors='none')
+        
+        # Add success trendline (mean of successful attempts per bin)
+        if success_x and len(success_x) > 10:
+            # Bin successes by attempt number
+            max_attempt = max(success_x) if success_x else 0
+            n_bins = min(20, max(5, max_attempt // 5))  # 5-20 bins depending on career length
+            bin_edges = np.linspace(0, max_attempt + 1, n_bins + 1)
+            
+            bin_centers = []
+            bin_means = []
+            
+            for i in range(n_bins):
+                bin_start, bin_end = bin_edges[i], bin_edges[i + 1]
+                # Get successes in this bin
+                bin_values = [y for x, y in zip(success_x, success_y) if bin_start <= x < bin_end]
+                if len(bin_values) >= 3:  # Only plot if enough data points
+                    bin_centers.append((bin_start + bin_end) / 2)
+                    bin_means.append(np.mean(bin_values))
+            
+            if len(bin_centers) >= 2:
+                ax.plot(bin_centers, bin_means, 'k-', linewidth=1.5, alpha=0.6, 
+                       label='Success trend', zorder=10)
+                ax.plot(bin_centers, bin_means, 'k--', linewidth=1, alpha=0.4, zorder=9)
+        
+        ax.set_xlabel('Attempt Number', fontsize=10)
+        ax.set_ylabel(y_axis.capitalize(), fontsize=10)
+        ax.set_title(f'θ = {theta}', fontsize=11, fontweight='bold')
+        ax.legend(loc='upper left', fontsize=8, framealpha=0.9)
+        ax.grid(alpha=0.3)
+        
+        # Count outcomes for subtitle
+        total = len(success_x) + len(failure_x) + len(fatal_x)
+        n_agents = len(traces)
+        if total > 0:
+            success_rate = len(success_x) / total * 100
+            ax.text(0.98, 0.02, f'{n_agents} agents, {success_rate:.0f}% success rate', 
+                   transform=ax.transAxes, ha='right', va='bottom', fontsize=8, color='gray')
+    
+    # Hide unused axes
+    for idx in range(len(thetas), len(axes)):
+        axes[idx].set_visible(False)
+    
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=150, bbox_inches='tight', facecolor='white')
+    plt.close()
+    
+    print(f"Journey scatter saved to: {output_path}")
